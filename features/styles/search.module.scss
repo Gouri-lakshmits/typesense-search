@@ -1,0 +1,10 @@
+
+.search{
+    h1{
+        color: red;
+    }
+    & :global(.searchInput){
+        width: 557px;
+        height: 30px;
+    }
+}
