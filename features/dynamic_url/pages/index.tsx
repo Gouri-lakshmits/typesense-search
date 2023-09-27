@@ -5,7 +5,7 @@ const index = ({categories}: DynamicUrlProps) => {
   console.log("categories", categories);
     
   return (  
-    <div>index</div>
+    <div>{categories?.name}</div>
   )
 }
 

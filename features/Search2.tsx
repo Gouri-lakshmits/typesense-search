@@ -6,6 +6,7 @@ import searchStyles from "./styles/search.module.scss";
 import { SYSTEM_CONFIG } from "../apollo/queries/config";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import index from "./dynamic_url/pages";
 
 export type ResultType = {
   facet_counts?: [];
@@ -33,6 +34,17 @@ type CategoryType = {
   }[];
 };
 
+export type ResultPageType = {
+  facet_counts?: [];
+  hits?: {
+    document: {
+      page_title: string;
+      page_id: string;
+      url: string;
+    };
+  }[];
+};
+
 const Search = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortField, setSortField] = useState("product_name");
@@ -40,6 +52,8 @@ const Search = () => {
   const [searchResult, setSearchResult] = useState<ResultType>({});
   const [visibleResults, setVisibleResults] = useState<number>(4);
   const [categorySearch, setCategorySearch] = useState<CategoryType>({});
+  const [pagesSearch, setPagesSearch] = useState<ResultPageType>({});
+
   const router = useRouter();
   const {
     data: configData,
@@ -72,6 +86,7 @@ const Search = () => {
       const searchParameters = {
         q: searchQuery,
         query_by: "product_name",
+        // filter_by : "price:=[$45.00]"
       };
       const searchResults = await typesenseClient
         .collections("magento2server_products")
@@ -83,6 +98,23 @@ const Search = () => {
       console.error("Typesense search error:", error);
     }
   };
+  const handlePageSearch = async (searchArg: string) => {
+    try {
+      const searchParameters = {
+        q: searchArg,
+        query_by: "page_title",
+      };
+      const searchPages = await typesenseClient
+        .collections("magento2server_pages")
+        .documents()
+        .search(searchParameters);
+      setPagesSearch(searchPages as any); // Create a state variable for pages
+      console.log("pages", searchPages);
+    } catch (error) {
+      console.log(error);
+    }
+  };
+
   const handleCategorySearch = async (searchArg: string) => {
     try {
       const searchParameters = {
@@ -90,7 +122,7 @@ const Search = () => {
         query_by: "category_name",
       };
       const SearchCategory = await typesenseClient
-        .collections("magento_categories")
+        .collections("magento2server_categories")
         .documents()
         .search(searchParameters);
       setCategorySearch(SearchCategory as any);
@@ -114,22 +146,36 @@ const Search = () => {
       setCategorySearch({ hits: [] });
     }
   }, [searchQuery]);
-  const formatCategoryName = (categoryName: any) => {
-    return categoryName.replace(/\s+/g, "-");
-  };
+  useEffect(() => {
+    if (searchQuery.trim() !== "") {
+      handlePageSearch(searchQuery);
+    } else {
+      setPagesSearch({ hits: [] });
+    }
+  }, [searchQuery]);
+
   const handleSearchSubmit = (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     handleSearch();
     const searchResultsQuery = JSON.stringify(
       searchResult.hits?.map((item) => item.document)
     );
-    router.push(`/search?productDetails=${searchResultsQuery}`);
+    router.push({
+      pathname: "/search",
+      query: { productDetails: searchResultsQuery },
+    });
   };
-  
+const url = pagesSearch?.hits?.map((i) => {
+  const pathname = new URL(i.document.url).pathname;
+  return pathname;
+});
+
+const pageUrl = url?.map((pages)=>pages)
+console.log("url",pageUrl);
+
   return (
-    <div className={searchStyles.search}  >
-      <form  onSubmit={handleSearchSubmit}>
-        
+    <div className={searchStyles.search}>
+      <form onSubmit={handleSearchSubmit}>
         <input
           type="text"
           className="searchInput"
@@ -137,71 +183,100 @@ const Search = () => {
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
         />
-        {/* <button type="submit">Search</button> */}
 
         {searchQuery.trim() !== "" && (
           <div className={"instant-search-result"}>
             <div className="category">
-              {categorySearch.hits?.length ? (
-                <>
-                  <h3 className="instant-search-head">CATEGORY</h3>
-                  {categorySearch.hits?.map((i) => (
-                    <div key={i.document.category_name}>
-                   {/* <Link href={`/${decodeURIComponent(i.document.path)}.html`}> */}
-                        <p className="instant-search-category-list"
-                         onClick={() => {
-                          const searchResultsQuery = JSON.stringify(
-                            searchResult.hits?.map((item) => item.document)
-                          );
-                          router.push(
-                            `/search?productDetails=${searchResultsQuery}`
-                          );
-                        }}
+              <h3>Suggestions</h3>
+              <p>No pages found</p>
+            </div>
+            <div>
+              <div className="category">
+              <h3 className="instant-search-head">Category</h3>
+                {categorySearch.hits?.length ? (
+                  <>
+                    <div>
+                    {categorySearch.hits?.map((i) => (
+                      <div key={i.document.category_name} className="instant_search_item">
+                        {/* <Link href={`/${decodeURIComponent(i.document.path)}.html`}> */}
+                        <p
+                          className="instant-search-category-list"
+                          onClick={() => {
+                            const searchResultsQuery = JSON.stringify(
+                              searchResult.hits?.map((item) => item.document)
+                            );
+                            router.push({
+                              pathname: "/search",
+                              query: { productDetails: searchResultsQuery },
+                            });
+                          }}
+                          // onClick={() => handleCategorySelect(i.document)}
                         >
                           {i.document.category_name}
                         </p>
-                      {/* </Link> */}
+                        {/* </Link> */}
+                      </div>
+                    ))}
                     </div>
-                  ))}
-                </>
-              ) : (
-                <>
-                  <h3 className="instant-search-head">CATEGORY</h3>
-                  <p className="instant-search-category-list">No products</p>
-                </>
-              )}
+                  </>
+                ) : (
+                  <>
+                    <h3 className="instant-search-head">Category</h3>
+                    <p className="instant-search-category-list">No products</p>
+                  </>
+                )}
+              </div>
+              <div>
+                <h3>Pages</h3>
+                {pagesSearch.hits && pagesSearch.hits.length > 0 ? (
+                  pagesSearch.hits?.map((pages , index) => (
+                    // url?.map((urls,index) => (
+                      <Link href={pageUrl?.[index] as any} key={index} >
+                      <p key={pages.document.page_id}>{pages.document.page_title}</p>
+                      </Link>
+                    ))
+                  // ))
+                ) : (
+                  <p>No pages found</p>
+                )}
+              </div>
             </div>
-
             <div className="instant-search-product-table">
               <h3>Products</h3>
-              {searchResult.hits?.slice(0, visibleResults).map((item) => (
-                <div
-                  className="instant-search-product-row"
-                  key={item.document.id}
-                >
-                  <div className="product-image-container">
-                    <img
-                      src={item.document.image_url}
-                      alt={item.document.product_name}
-                      className="instant-search-product-image"
-                    />
-                    <div>
-                      <p className={"instant-search-products"}>
-                        {item.document.product_name}
-                      </p>
-                      {item.document.sku && (
-                        <p className="instant-search-product-list">
-                          sku: {item.document.sku}
-                        </p>
-                      )}
-                      <p className="instant-search-product-list">
-                        {item.document.price}
-                      </p>
+              {searchResult.hits && searchResult.hits.length > 0 ? (
+                <div>
+                  {searchResult.hits?.slice(0, visibleResults).map((item) => (
+                    <div
+                      className="instant-search-product-row"
+                      key={item.document.id}
+                    >
+                      <div className="product-image-container">
+                        <img
+                          src={item.document.image_url}
+                          alt={item.document.product_name}
+                          className="instant-search-product-image"
+                        />
+                        <div>
+                          <p className={"instant-search-products"}>
+                            {item.document.product_name}
+                          </p>
+                          {item.document.sku && (
+                            <p className="instant-search-product-list">
+                              sku: {item.document.sku}
+                            </p>
+                          )}
+                          <p className="instant-search-product-list">
+                            {item.document.price}
+                          </p>
+                        </div>
+                      </div>
                     </div>
-                  </div>
+                  ))}
                 </div>
-              ))}
-              <div>
+              ) : (
+                <p>No Products</p>
+              )}
+              <div className="instant_search_viewMore_wrapper">
                 {searchResult.hits?.length &&
                 searchResult.hits.length > visibleResults ? (
                   <div className="instant-search-viewMore">
@@ -211,12 +286,13 @@ const Search = () => {
                         const searchResultsQuery = JSON.stringify(
                           searchResult.hits?.map((item) => item.document)
                         );
-                        router.push(
-                          `/search?productDetails=${searchResultsQuery}`
-                        );
+                        router.push({
+                          pathname: "/search",
+                          query: { productDetails: searchResultsQuery },
+                        });
                       }}
                     >
-                      See All Products
+                      view all
                     </button>
                   </div>
                 ) : (
