@@ -59,18 +59,20 @@
         display: flex;
         flex-wrap: wrap;
         gap: 1rem;
+        padding-bottom: 1rem;
         & :global(.instant-search-product-row) {
           flex: 0 0 calc(100% / 3 - 2rem / 3);
           display: flex;
           align-items: flex-start;
           justify-content: flex-start;
+          height: max-content;
           @media screen and (max-width:500px) {
             // flex-direction: column-reverse;
             // gap: 2rem;
           }
           & :global(.product-image-container){
            width: 100%;
-           padding: 0 0 1rem 0;
+          //  padding: 0 0 1rem 0;
            &>div{
             &:hover{
               text-decoration: underline;
