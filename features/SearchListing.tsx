@@ -4,7 +4,7 @@ import { useQuery } from "@apollo/client";
 import { SYSTEM_CONFIG } from "@/apollo/queries/config";
 import Select, { SelectChangeEvent } from "@mui/material/Select";
 import MenuItem from "@mui/material/MenuItem";
-import searchListStyle from "./styles/search_listing.module.scss"
+import searchListStyle from "./styles/search_listing.module.scss";
 
 const SearchListing = () => {
   const router = useRouter();
@@ -42,7 +42,6 @@ const SearchListing = () => {
   }, [router.query.productDetails]);
 
   const categoryCounts: Record<string, number> = {};
-
   searchResults.forEach((product) => {
     const category = product.category;
     if (category) {
@@ -53,16 +52,21 @@ const SearchListing = () => {
       }
     }
   });
-  const sizeCounts: Record<string, number> = {};
 
+  const sizeCounts: Record<string, number> = {};
   searchResults.forEach((product) => {
-    const size = product.size;
-    if (size) {
-      if (sizeCounts[size]) {
-        sizeCounts[size]++;
-      } else {
-        sizeCounts[size] = 1;
-      }
+    const sizes = product.size;
+    if (sizes && Array.isArray(sizes)) {
+      sizes.forEach((size) => {
+        const sizeKey = size.toUpperCase();
+        if (sizeKey) {
+          if (sizeCounts[sizeKey]) {
+            sizeCounts[sizeKey]++;
+          } else {
+            sizeCounts[sizeKey] = 1;
+          }
+        }
+      });
     }
   });
 
@@ -77,19 +81,23 @@ const SearchListing = () => {
   };
 
   const colorCounts: Record<string, number> = {};
-
   searchResults.forEach((product) => {
-    const color = product.color;
-    if (color) {
-      if (colorCounts[color]) {
-        colorCounts[color]++;
-      } else {
-        colorCounts[color] = 1;
-      }
+    const colors = product.color;
+
+    if (colors && Array.isArray(colors)) {
+      colors.forEach((color) => {
+        if (color) {
+          if (colorCounts[color]) {
+            colorCounts[color]++;
+          } else {
+            colorCounts[color] = 1;
+          }
+        }
+      });
     }
   });
-  const priceCounts: Record<string, number> = {};
 
+  const priceCounts: Record<string, number> = {};
   searchResults.forEach((product) => {
     const price = product.price;
     if (price) {
@@ -100,6 +108,7 @@ const SearchListing = () => {
       }
     }
   });
+
   const newnessCounts: Record<string, number> = {};
   searchResults.forEach((product) => {
     const newness = product.newness;
@@ -122,10 +131,11 @@ const SearchListing = () => {
     }
   };
 
-
   const handleColorFilterChange = (color: string) => {
     if (selectedColors.includes(color)) {
-      setSelectedColors((prevFilters) => prevFilters.filter((filter) =>  filter !== color));
+      setSelectedColors((prevFilters) =>
+        prevFilters.filter((filter) => filter !== color)
+      );
     } else {
       setSelectedColors((prevFilters) => [...prevFilters, color]);
     }
@@ -133,17 +143,35 @@ const SearchListing = () => {
   const uniquePriceValues = Array.from(
     new Set(searchResults.map((product) => product.price))
   );
+  const combinedCategories = searchResults.map((product) => product.category);
+  const allCategories = combinedCategories.join(',').split(',');
+  
+  const uniquecategoryValues = Array.from(new Set(allCategories));
 
-  const uniquecategoryValues = Array.from(
-    new Set(searchResults.map((product) => product.category))
-  );
+  
+  // Calculate category counts
+  uniquecategoryValues.forEach((category) => {
+    categoryCounts[category] = allCategories.filter((c) => c === category).length;
+  });
 
   const uniquecolorsValues = Array.from(
-    new Set(searchResults.map((product) => product.color))
+    new Set(
+      searchResults
+        .map((product) => product.color)
+        .join(",")
+        .split(",")
+    )
   );
-
   const uniquesizeValues = Array.from(
-    new Set(searchResults.map((product) => product.size))
+    new Set(
+      searchResults.flatMap((product) => {
+        const sizes = product.size;
+        if (sizes && Array.isArray(sizes)) {
+          return sizes.map((size) => size.toUpperCase());
+        }
+        return [];
+      })
+    )
   );
 
   const uniqueNewValues = Array.from(
@@ -215,21 +243,24 @@ const SearchListing = () => {
   };
 
   const filteredProducts = searchResults.filter((item) => {
-    const passesCategoryFilter =
-    selectedCategoryFilters.length === 0 ||
-    selectedCategoryFilters.includes(item?.category);
-    const passesColorFilter =
-      selectedColors.length === 0 || selectedColors.includes(item?.color);
-    const passesSizeFilter =
-      selectedSizeFilters.length === 0 ||
-      selectedSizeFilters.includes(item?.size);
     const passesNewnessFilter =
       selectedNewnessFilters.length === 0 ||
       selectedNewnessFilters.includes(item?.newness);
     const hasPriceFilter = selectedPriceFilters.length > 0;
     const passesPriceFilter =
       !hasPriceFilter || selectedPriceFilters.includes(item?.price);
-
+      const category = item.category;
+      const passesCategoryFilter = selectedCategoryFilters.length === 0 || (Array.isArray(category) && category.some((cat)=>selectedCategoryFilters.includes(cat)))
+    const size = item?.size;
+    const selectedSizeFiltersAsStrings = selectedSizeFilters.map(String);
+    const passesSizeFilter =
+      selectedSizeFilters.length === 0 ||
+      (Array.isArray(size) &&
+        size.some((s) => selectedSizeFiltersAsStrings.includes(String(s))));
+    const color = item?.color;
+    const passesColorFilter =
+      selectedColors.length === 0 ||
+      (Array.isArray(color) && color.some((c) => selectedColors.includes(c)));
     return (
       passesCategoryFilter &&
       passesColorFilter &&
@@ -260,42 +291,38 @@ const SearchListing = () => {
 
   return (
     <div className={searchListStyle.search_list_main}>
-      <h1>Search Listing Page</h1>
+      {/* <h1>Search Listing Page</h1> */}
       <div className="search_area_wrapper">
-
-      <form onSubmit={handleSearchSubmit}>
-        <input
-          type="text"
-          placeholder="Search Products"
-          value={searchQuery}
-          onChange={handleSearchInputChange}
-        />
-      </form>
-      <div>
-        <label>Sort by:</label>
-
-        <Select
-          labelId="demo-simple-select-label"
-          id="demo-simple-select"
-          value={sortAttribute}
-          onChange={(e) => handleSortChange(e.target.value)}
-        >
-        
-          {configData?.typeseSenseSystemConfig.search_result.sort_option.map(
-            (option: any) => (
-
-              <MenuItem key={option.attribute} value={option.attribute}>            
-                {option.label}
-              </MenuItem>
-            )
-          )}
-        </Select>
+        <form onSubmit={handleSearchSubmit}>
+          <input
+            type="text"
+            placeholder="Search Products"
+            value={searchQuery}
+            onChange={handleSearchInputChange}
+          />
+        </form>
+        <div className="sort_wrapper">
+          <label>Sort by:</label>
+          <Select
+            labelId="demo-simple-select-label"
+            id="demo-simple-select"
+            value={sortAttribute}
+            onChange={(e) => handleSortChange(e.target.value)}
+          >
+            {configData?.typeseSenseSystemConfig.search_result.sort_option.map(
+              (option: any) => (
+                <MenuItem key={option.attribute} value={option.attribute}>
+                  {option.label}
+                </MenuItem>
+              )
+            )}
+          </Select>
+        </div>
       </div>
-      </div>
-
-      <div>
-        <div>
-          <label>Price:</label>
+      {/* {filteredProducts.length > 0  && (  */}
+      <div className="serach_list_container">
+        <div className="filter_inner_wrapper">
+          <label className="filter_item_wraper">Price:</label>
           {uniquePriceValues.map((priceValue: string) => (
             <label key={priceValue}>
               <input
@@ -305,59 +332,58 @@ const SearchListing = () => {
                 onChange={() => handlePriceFilterChange(priceValue)}
               />
               {`${priceValue} (${priceCounts[priceValue] || 0})`}{" "}
-       
             </label>
           ))}
         </div>
-        <div>
+      
+        <div className="filter_inner_wrapper">
           <label>Category:</label>
           {uniquecategoryValues.map((category: string) => (
-            <label key={category}>
+            <label key={category} className="filter_item_wraper">
               <input
                 type="checkbox"
                 value={category}
                 checked={selectedCategoryFilters.includes(category)}
                 onChange={() => handleCategoryFilterChange(category)}
               />
-                 {`${category} (${categoryCounts[category] || 0})`} 
-           
+              {`${category} (${categoryCounts[category] || 0})`}
             </label>
           ))}
         </div>
-        <div>
+        <div className="filter_inner_wrapper">
           <label>Color:</label>
           {uniquecolorsValues.map((color: string) => (
-            <label key={color}>
+            <label key={color} className="filter_item_wraper">
               <input
                 type="checkbox"
                 value={color}
                 checked={selectedColors.includes(color)}
                 onChange={() => handleColorFilterChange(color)}
               />
-              {`${color} (${colorCounts[color] || 0})`}
+              {`${color.toLowerCase()} (${colorCounts[color] || 0})`}
             </label>
           ))}
         </div>
 
-        <div>
+        <div className="filter_inner_wrapper">
           <label>Size:</label>
           {uniquesizeValues.map((size: string) => (
-            <label key={size}>
+            <label key={size} className="filter_item_wraper">
               <input
                 type="checkbox"
                 value={size}
                 checked={selectedSizeFilters.includes(size)}
                 onChange={() => handleSizeFilterChange(size)}
               />
-              {`${size} (${colorCounts[size] || 0})`}
+              {`${size.toUpperCase()} (${sizeCounts[size] || 0})`}
             </label>
           ))}
         </div>
 
-        <div>
+        <div className="filter_inner_wrapper">
           <label>New:</label>
           {uniqueNewValues.map((newness: string) => (
-            <label key={newness}>
+            <label key={newness} className="filter_item_wraper">
               <input
                 type="checkbox"
                 value={newness}
@@ -368,7 +394,7 @@ const SearchListing = () => {
             </label>
           ))}
         </div>
-      </div>
+       <div  className="products_wrapper"> 
       <ul className="search_list_item_wrapper">
         {displayedProducts.map((item, index) => (
           <div className="card" key={index}>
@@ -379,6 +405,9 @@ const SearchListing = () => {
           </div>
         ))}
       </ul>
+      </div>
+      </div>
+       {/* ) } */}
       <div className="pagination">
         {Array.from({ length: totalPages }, (_, index) => (
           <button
