@@ -342,7 +342,7 @@ const SearchListing = () => {
           </Select>
         </div>
       </div>
-      {filteredProducts.length > 0 && (
+      {filteredProducts.length > 0 ? (
         <div className="serach_list_container">
           <div className="filter_wrapper">
             {priceCount > 0 && (
@@ -450,7 +450,7 @@ const SearchListing = () => {
             </ul>
           </div>
         </div>
-      )}
+      ) : (<h1 className="no-products"> No Products available</h1>)}
       <div className="pagination">
         {Array.from({ length: totalPages }, (_, index) => (
           <button
