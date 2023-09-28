@@ -240,7 +240,7 @@ console.log("url",pageUrl);
             </div>
             <div className="category">
             <h3>Products</h3>
-            <div className="instant-search-product-table">
+            <div className=" category instant-search-product-table">
               {searchResult.hits && searchResult.hits.length > 0 ? (
                 <>
                   {searchResult.hits?.slice(0, visibleResults).map((item) => (

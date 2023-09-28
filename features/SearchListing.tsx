@@ -304,6 +304,9 @@ const SearchListing = () => {
         <div className="sort_wrapper">
           <label>Sort by:</label>
           <Select
+          sx={{
+            height:'25px'
+          }}
             labelId="demo-simple-select-label"
             id="demo-simple-select"
             value={sortAttribute}
@@ -321,78 +324,80 @@ const SearchListing = () => {
       </div>
       {/* {filteredProducts.length > 0  && (  */}
       <div className="serach_list_container">
+        <div className="filter_wrapper">
         <div className="filter_inner_wrapper">
-          <label className="filter_item_wraper">Price:</label>
+          <h3>Price:</h3>
           {uniquePriceValues.map((priceValue: string) => (
-            <label key={priceValue}>
+            <p key={priceValue} className="filter_item_wraper">
               <input
                 type="checkbox"
                 value={priceValue}
                 checked={selectedPriceFilters.includes(priceValue)}
                 onChange={() => handlePriceFilterChange(priceValue)}
               />
-              {`${priceValue} (${priceCounts[priceValue] || 0})`}{" "}
-            </label>
+              <span>{`${priceValue} (${priceCounts[priceValue] || 0})`}{" "}</span>
+            </p>
           ))}
         </div>
       
         <div className="filter_inner_wrapper">
-          <label>Category:</label>
+          <h3>Category:</h3>
           {uniquecategoryValues.map((category: string) => (
-            <label key={category} className="filter_item_wraper">
+            <p key={category} className="filter_item_wraper">
               <input
                 type="checkbox"
                 value={category}
                 checked={selectedCategoryFilters.includes(category)}
                 onChange={() => handleCategoryFilterChange(category)}
               />
-              {`${category} (${categoryCounts[category] || 0})`}
-            </label>
+              <span>{`${category} (${categoryCounts[category] || 0})`}</span>
+            </p>
           ))}
         </div>
         <div className="filter_inner_wrapper">
-          <label>Color:</label>
+          <h3>Color:</h3>
           {uniquecolorsValues.map((color: string) => (
-            <label key={color} className="filter_item_wraper">
+            <p key={color} className="filter_item_wraper">
               <input
                 type="checkbox"
                 value={color}
                 checked={selectedColors.includes(color)}
                 onChange={() => handleColorFilterChange(color)}
               />
-              {`${color.toLowerCase()} (${colorCounts[color] || 0})`}
-            </label>
+              <span>{`${color.toLowerCase()} (${colorCounts[color] || 0})`}</span>
+            </p>
           ))}
         </div>
 
         <div className="filter_inner_wrapper">
-          <label>Size:</label>
+          <h3>Size:</h3>
           {uniquesizeValues.map((size: string) => (
-            <label key={size} className="filter_item_wraper">
+            <p key={size} className="filter_item_wraper">
               <input
                 type="checkbox"
                 value={size}
                 checked={selectedSizeFilters.includes(size)}
                 onChange={() => handleSizeFilterChange(size)}
               />
-              {`${size.toUpperCase()} (${sizeCounts[size] || 0})`}
-            </label>
+             <span> {`${size.toUpperCase()} (${sizeCounts[size] || 0})`}</span>
+            </p>
           ))}
         </div>
 
         <div className="filter_inner_wrapper">
-          <label>New:</label>
+          <h3>New:</h3>
           {uniqueNewValues.map((newness: string) => (
-            <label key={newness} className="filter_item_wraper">
+            <p key={newness} className="filter_item_wraper">
               <input
                 type="checkbox"
                 value={newness}
                 checked={selectedNewnessFilters.includes(newness)}
                 onChange={() => handleNewnessFilterChange(newness)}
               />
-              {`${newness} (${newnessCounts[newness] || 0})`}
-            </label>
+             <span>{`${newness} (${newnessCounts[newness] || 0})`}</span> 
+            </p>
           ))}
+        </div>
         </div>
        <div  className="products_wrapper"> 
       <ul className="search_list_item_wrapper">
