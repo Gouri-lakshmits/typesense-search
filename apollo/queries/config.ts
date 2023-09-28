@@ -18,10 +18,6 @@ export const SYSTEM_CONFIG = gql`
       search_result {
         status
         product_per_page
-        search_filters{
-          attribute
-        
-        }
         sort_option {
           attribute
           label
