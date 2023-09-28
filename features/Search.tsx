@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useQuery } from "@apollo/client";
 import Typesense from "typesense";
-import { SEARCH_QUERY } from "@/apollo/queries/search";
 import searchStyles from "./styles/search.module.scss";
 import { SYSTEM_CONFIG } from "../apollo/queries/config";
 import Link from "next/link";
