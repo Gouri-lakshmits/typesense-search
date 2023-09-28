@@ -144,14 +144,15 @@ const SearchListing = () => {
     new Set(searchResults.map((product) => product.price))
   );
   const combinedCategories = searchResults.map((product) => product.category);
-  const allCategories = combinedCategories.join(',').split(',');
-  
+  const allCategories = combinedCategories.join(",").split(",");
+
   const uniquecategoryValues = Array.from(new Set(allCategories));
 
-  
   // Calculate category counts
   uniquecategoryValues.forEach((category) => {
-    categoryCounts[category] = allCategories.filter((c) => c === category).length;
+    categoryCounts[category] = allCategories.filter(
+      (c) => c === category
+    ).length;
   });
 
   const uniquecolorsValues = Array.from(
@@ -235,10 +236,8 @@ const SearchListing = () => {
       setselectedCategoryFilters((prevFilters) =>
         prevFilters.filter((filter) => filter !== category)
       );
-      console.log("category in if ", category);
     } else {
       setselectedCategoryFilters((prevFilters) => [...prevFilters, category]);
-      console.log("category in else ", category);
     }
   };
 
@@ -249,8 +248,11 @@ const SearchListing = () => {
     const hasPriceFilter = selectedPriceFilters.length > 0;
     const passesPriceFilter =
       !hasPriceFilter || selectedPriceFilters.includes(item?.price);
-      const category = item.category;
-      const passesCategoryFilter = selectedCategoryFilters.length === 0 || (Array.isArray(category) && category.some((cat)=>selectedCategoryFilters.includes(cat)))
+    const category = item.category;
+    const passesCategoryFilter =
+      selectedCategoryFilters.length === 0 ||
+      (Array.isArray(category) &&
+        category.some((cat) => selectedCategoryFilters.includes(cat)));
     const size = item?.size;
     const selectedSizeFiltersAsStrings = selectedSizeFilters.map(String);
     const passesSizeFilter =
@@ -269,8 +271,7 @@ const SearchListing = () => {
       passesPriceFilter
     );
   });
-  console.log("filteredProducts", filteredProducts);
-  console.log("Category Counts:", categoryCounts);
+
   const sortedProducts = filteredProducts.slice().sort((a, b) => {
     if (sortAttribute && sortOrder) {
       const valueA = a[sortAttribute];
@@ -304,9 +305,9 @@ const SearchListing = () => {
         <div className="sort_wrapper">
           <label>Sort by:</label>
           <Select
-          sx={{
-            height:'25px'
-          }}
+            sx={{
+              height: "25px",
+            }}
             labelId="demo-simple-select-label"
             id="demo-simple-select"
             value={sortAttribute}
@@ -325,94 +326,101 @@ const SearchListing = () => {
       {/* {filteredProducts.length > 0  && (  */}
       <div className="serach_list_container">
         <div className="filter_wrapper">
-        <div className="filter_inner_wrapper">
-          <h3>Price:</h3>
-          {uniquePriceValues.map((priceValue: string) => (
-            <p key={priceValue} className="filter_item_wraper">
-              <input
-                type="checkbox"
-                value={priceValue}
-                checked={selectedPriceFilters.includes(priceValue)}
-                onChange={() => handlePriceFilterChange(priceValue)}
-              />
-              <span>{`${priceValue} (${priceCounts[priceValue] || 0})`}{" "}</span>
-            </p>
-          ))}
-        </div>
-      
-        <div className="filter_inner_wrapper">
-          <h3>Category:</h3>
-          {uniquecategoryValues.map((category: string) => (
-            <p key={category} className="filter_item_wraper">
-              <input
-                type="checkbox"
-                value={category}
-                checked={selectedCategoryFilters.includes(category)}
-                onChange={() => handleCategoryFilterChange(category)}
-              />
-              <span>{`${category} (${categoryCounts[category] || 0})`}</span>
-            </p>
-          ))}
-        </div>
-        <div className="filter_inner_wrapper">
-          <h3>Color:</h3>
-          {uniquecolorsValues.map((color: string) => (
-            <p key={color} className="filter_item_wraper">
-              <input
-                type="checkbox"
-                value={color}
-                checked={selectedColors.includes(color)}
-                onChange={() => handleColorFilterChange(color)}
-              />
-              <span>{`${color.toLowerCase()} (${colorCounts[color] || 0})`}</span>
-            </p>
-          ))}
-        </div>
-
-        <div className="filter_inner_wrapper">
-          <h3>Size:</h3>
-          {uniquesizeValues.map((size: string) => (
-            <p key={size} className="filter_item_wraper">
-              <input
-                type="checkbox"
-                value={size}
-                checked={selectedSizeFilters.includes(size)}
-                onChange={() => handleSizeFilterChange(size)}
-              />
-             <span> {`${size.toUpperCase()} (${sizeCounts[size] || 0})`}</span>
-            </p>
-          ))}
-        </div>
-
-        <div className="filter_inner_wrapper">
-          <h3>New:</h3>
-          {uniqueNewValues.map((newness: string) => (
-            <p key={newness} className="filter_item_wraper">
-              <input
-                type="checkbox"
-                value={newness}
-                checked={selectedNewnessFilters.includes(newness)}
-                onChange={() => handleNewnessFilterChange(newness)}
-              />
-             <span>{`${newness} (${newnessCounts[newness] || 0})`}</span> 
-            </p>
-          ))}
-        </div>
-        </div>
-       <div  className="products_wrapper"> 
-      <ul className="search_list_item_wrapper">
-        {displayedProducts.map((item, index) => (
-          <div className="card" key={index}>
-            <img src={item.image_url} alt="Denim Jeans" />
-            <h1>{item.product_name}</h1>
-            <p className="price">{item.price}</p>
-            <p>{item.sku}</p>
+          <div className="filter_inner_wrapper">
+            <h3>Price:</h3>
+            {uniquePriceValues.map((priceValue: string) => (
+              <p key={priceValue} className="filter_item_wraper">
+                <input
+                  type="checkbox"
+                  value={priceValue}
+                  checked={selectedPriceFilters.includes(priceValue)}
+                  onChange={() => handlePriceFilterChange(priceValue)}
+                />
+                <span>
+                  {`${priceValue} (${priceCounts[priceValue] || 0})`}{" "}
+                </span>
+              </p>
+            ))}
           </div>
-        ))}
-      </ul>
+
+          <div className="filter_inner_wrapper">
+            <h3>Category:</h3>
+            {uniquecategoryValues.map((category: string) => (
+              <p key={category} className="filter_item_wraper">
+                <input
+                  type="checkbox"
+                  value={category}
+                  checked={selectedCategoryFilters.includes(category)}
+                  onChange={() => handleCategoryFilterChange(category)}
+                />
+                <span>{`${category} (${categoryCounts[category] || 0})`}</span>
+              </p>
+            ))}
+          </div>
+          <div className="filter_inner_wrapper">
+            <h3>Color:</h3>
+            {uniquecolorsValues.map((color: string) => (
+              <p key={color} className="filter_item_wraper">
+                <input
+                  type="checkbox"
+                  value={color}
+                  checked={selectedColors.includes(color)}
+                  onChange={() => handleColorFilterChange(color)}
+                />
+                <span>{`${color.toLowerCase()} (${
+                  colorCounts[color] || 0
+                })`}</span>
+              </p>
+            ))}
+          </div>
+
+          <div className="filter_inner_wrapper">
+            <h3>Size:</h3>
+            {uniquesizeValues.map((size: string) => (
+              <p key={size} className="filter_item_wraper">
+                <input
+                  type="checkbox"
+                  value={size}
+                  checked={selectedSizeFilters.includes(size)}
+                  onChange={() => handleSizeFilterChange(size)}
+                />
+                <span>
+                  {" "}
+                  {`${size.toUpperCase()} (${sizeCounts[size] || 0})`}
+                </span>
+              </p>
+            ))}
+          </div>
+
+          <div className="filter_inner_wrapper">
+            <h3>New:</h3>
+            {uniqueNewValues.map((newness: string) => (
+              <p key={newness} className="filter_item_wraper">
+                <input
+                  type="checkbox"
+                  value={newness}
+                  checked={selectedNewnessFilters.includes(newness)}
+                  onChange={() => handleNewnessFilterChange(newness)}
+                />
+                <span>{`${newness} (${newnessCounts[newness] || 0})`}</span>
+              </p>
+            ))}
+          </div>
+        </div>
+        <div className="products_wrapper">
+          <ul className="search_list_item_wrapper">
+            {displayedProducts.map((item, index) => (
+              <div className="card" key={index}>
+                <img src={item.image_url} alt="Denim Jeans" />
+                <h1>{item.product_name}</h1>
+                <p className="price">{item.price}</p>
+                <p>{item.sku}</p>
+              </div>
+            ))}
+          </ul>
+        </div>
       </div>
-      </div>
-       {/* ) } */}
+      {/* ) } */}
       <div className="pagination">
         {Array.from({ length: totalPages }, (_, index) => (
           <button
