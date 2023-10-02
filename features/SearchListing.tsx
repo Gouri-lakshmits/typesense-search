@@ -29,6 +29,8 @@ const SearchListing = () => {
   >([]);
   const [searchResults, setSearchResults] = useState<any[]>([]); // Store search results
 
+
+
   useEffect(() => {
     const productDetailsParam = router.query.productDetails;
     if (productDetailsParam) {
@@ -81,17 +83,16 @@ const SearchListing = () => {
     }
   };
 
-  const colorCounts: Record<string, number> = {};
+  const filteredColorCounts: Record<string, number> = {};
   searchResults.forEach((product) => {
     const colors = product.color;
-
     if (colors && Array.isArray(colors)) {
       colors.forEach((color) => {
         if (color) {
-          if (colorCounts[color]) {
-            colorCounts[color]++;
+          if (filteredColorCounts[color]) {
+            filteredColorCounts[color]++;
           } else {
-            colorCounts[color] = 1;
+            filteredColorCounts[color] = 1;
           }
         }
       });
@@ -141,9 +142,6 @@ const SearchListing = () => {
       setSelectedColors((prevFilters) => [...prevFilters, color]);
     }
   };
-  const uniquePriceValues = Array.from(
-    new Set(searchResults.map((product) => product.price))
-  );
   const combinedCategories = searchResults.map((product) => product.category);
   const allCategories = combinedCategories.join(",").split(",");
 
@@ -154,30 +152,6 @@ const SearchListing = () => {
       (c) => c === category
     ).length;
   });
-
-  const uniquecolorsValues = Array.from(
-    new Set(
-      searchResults
-        .map((product) => product.color)
-        .join(",")
-        .split(",")
-    )
-  );
-  const uniquesizeValues = Array.from(
-    new Set(
-      searchResults.flatMap((product) => {
-        const sizes = product.size;
-        if (sizes && Array.isArray(sizes)) {
-          return sizes.map((size) => size.toUpperCase());
-        }
-        return [];
-      })
-    )
-  );
-
-  const uniqueNewValues = Array.from(
-    new Set(searchResults.map((product) => product.new))
-  );
 
   const totalPages = Math.ceil(searchResults.length / productsPerPage);
 
@@ -229,6 +203,7 @@ const SearchListing = () => {
     } else {
       setSelectedPriceFilters((prevFilters) => [...prevFilters, priceValue]);
     }
+    filterProductsByCategory();
   };
 
   const handleCategoryFilterChange = (category: string) => {
@@ -271,6 +246,13 @@ const SearchListing = () => {
       passesPriceFilter
     );
   });
+  const filterProductsByCategory = () => {
+    const filteredProducts = productDetails.filter((item) =>
+      selectedCategoryFilters.includes(item.category)
+    );
+  
+    setSearchResults(filteredProducts);
+  };
 
   const sortedProducts = filteredProducts.slice().sort((a, b) => {
     if (sortAttribute && sortOrder) {
@@ -297,10 +279,6 @@ const SearchListing = () => {
     (acc, count) => acc + count,
     0
   );
-  const colorCount = Object.values(colorCounts).reduce(
-    (acc, count) => acc + count,
-    0
-  );
   const categoryCount = Object.values(categoryCounts).reduce(
     (acc, count) => acc + count,
     0
@@ -309,6 +287,43 @@ const SearchListing = () => {
     (acc, count) => acc + count,
     0
   );
+  const availableColors = Array.from(
+    new Set(
+      filteredProducts
+        .map((product) => product.color)
+        .flat()
+        .filter(Boolean)
+    )
+  );
+  
+  // Calculate available price options
+  const availablePriceValues = Array.from(
+    new Set(
+      filteredProducts
+        .map((product) => product.price)
+        .filter((price) => typeof price === 'string')
+    )
+  );
+  // Calculate available size options
+  const availableSizeValues = Array.from(
+    new Set(
+      filteredProducts
+        .flatMap((product) => {
+          const sizes = product.size;
+          if (sizes && Array.isArray(sizes)) {
+            return sizes.map((size) => size.toUpperCase());
+          }
+          return [];
+        })
+    )
+  );
+  const uniquesizeValues = Array.from(new Set(availableSizeValues));
+  
+  const availableNewness = Array.from(
+    new Set(filteredProducts.map((product) => product.newness).filter(Boolean))
+  );
+
+
   return (
     <div className={searchListStyle.search_list_main}>
       {/* <h1>Search Listing Page</h1> */}
@@ -348,7 +363,7 @@ const SearchListing = () => {
             {priceCount > 0 && (
               <div className="filter_inner_wrapper">
                 <h3>Price:</h3>
-                {uniquePriceValues.map((priceValue: string) => (
+                {availablePriceValues.map((priceValue: string) => (
                   <p key={priceValue} className="filter_item_wraper">
                     <input
                       type="checkbox"
@@ -381,10 +396,10 @@ const SearchListing = () => {
                 ))}
               </div>
             )}
-            {colorCount > 0 && (
+            {Object.keys(filteredColorCounts).length > 0 && (
               <div className="filter_inner_wrapper">
                 <h3>Color:</h3>
-                {uniquecolorsValues.map((color: string) => (
+                {availableColors.map((color) => (
                   <p key={color} className="filter_item_wraper">
                     <input
                       type="checkbox"
@@ -393,7 +408,7 @@ const SearchListing = () => {
                       onChange={() => handleColorFilterChange(color)}
                     />
                     <span>{`${color.toLowerCase()} (${
-                      colorCounts[color] || 0
+                      filteredColorCounts[color]
                     })`}</span>
                   </p>
                 ))}
@@ -402,7 +417,7 @@ const SearchListing = () => {
             {totalCount > 0 && (
               <div className="filter_inner_wrapper">
                 <h3>Size:</h3>
-                {uniquesizeValues.map(
+                {uniquesizeValues .map(
                   (size: string) =>
                     sizeCounts[size] > 0 && (
                       <p key={size} className="filter_item_wraper">
@@ -423,7 +438,7 @@ const SearchListing = () => {
             {newCount > 0 && (
               <div className="filter_inner_wrapper">
                 <h3>New:</h3>
-                {uniqueNewValues.map((newness: string) => (
+                {availableNewness.map((newness: string) => (
                   <p key={newness} className="filter_item_wraper">
                     <input
                       type="checkbox"
@@ -450,7 +465,9 @@ const SearchListing = () => {
             </ul>
           </div>
         </div>
-      ) : (<h1 className="no-products"> No Products available</h1>)}
+      ) : (
+        <h1 className="no-products"> No Products available</h1>
+      )}
       <div className="pagination">
         {Array.from({ length: totalPages }, (_, index) => (
           <button

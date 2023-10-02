@@ -5,6 +5,7 @@ import searchStyles from "./styles/search.module.scss";
 import { SYSTEM_CONFIG } from "../apollo/queries/config";
 import Link from "next/link";
 import { useRouter } from "next/router";
+import useTypesenseClient from "./Typesense";
 
 export type ResultType = {
   facet_counts?: [];
@@ -51,24 +52,10 @@ const Search = () => {
   const [visibleResults, setVisibleResults] = useState<number>(4);
   const [categorySearch, setCategorySearch] = useState<CategoryType>({});
   const [pagesSearch, setPagesSearch] = useState<ResultPageType>({});
-
+  const [productSuggestions, setProductSuggestions] = useState<ResultType>({});
   const router = useRouter();
-  const {
-    data: configData,
-    loading: configLoading,
-    error: configError,
-  } = useQuery(SYSTEM_CONFIG);
-  const typesenseClient = new Typesense.Client({
-    nodes: [
-      {
-        host: configData?.typeseSenseSystemConfig.general.node,
-        port: configData?.typeseSenseSystemConfig.general.port,
-        protocol: configData?.typeseSenseSystemConfig.general.protocol,
-      },
-    ],
-    apiKey: "izunSdbDxLEhLDtETOKnG3n8kTAXx2JF",
-    connectionTimeoutSeconds: 2,
-  });
+ 
+  const typesenseClient = useTypesenseClient();
 
   const handleSearch = async () => {
     try {
@@ -81,6 +68,7 @@ const Search = () => {
         .documents()
         .search(searchParameters);
       setSearchResult(searchResults as any);
+      setProductSuggestions(searchResults as any);
     } catch (error) {
       console.error("Typesense search error:", error);
     }
@@ -95,7 +83,7 @@ const Search = () => {
         .collections("magento2server_pages")
         .documents()
         .search(searchParameters);
-      setPagesSearch(searchPages as any); // Create a state variable for pages
+      setPagesSearch(searchPages as any); 
     } catch (error) {
       console.log(error);
     }
@@ -170,9 +158,30 @@ const Search = () => {
 
         {searchQuery.trim() !== "" && (
           <div className={"instant-search-result"}>
-            <div className="category">
+           <div className="category">
               <h3>Suggestions</h3>
-              <p>No pages found</p>
+              {productSuggestions.hits && productSuggestions.hits.length > 0 ? (
+                <>
+                  {productSuggestions.hits?.map((item) => (
+                    <p
+                      key={item.document.id}
+                      onClick={() => {
+                        // Replace 'product_name' with the appropriate field name
+                        const suggestionQuery =  JSON.stringify(
+                          searchResult.hits?.map((item) => item.document));
+                        router.push({
+                          pathname: "/search", 
+                          query: { productDetails: suggestionQuery },
+                        });
+                      }}
+                    >
+                      {item.document.product_name}
+                    </p>
+                  ))}
+                </>
+              ) : (
+                <p>No pages found</p>
+              )}
             </div>
 
             <div className="category">
