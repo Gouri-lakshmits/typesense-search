@@ -1,7 +1,5 @@
 /** @type {import('next').NextConfig} */
 
-const withPWA = require("next-pwa");
-
 const isDevelopment = process.env.NODE_ENV !== "production";
 const rewritesConfig = isDevelopment
   ? [
@@ -17,26 +15,16 @@ const rewritesConfig = isDevelopment
     },
   ];
 
-  const nextConfig = {
-    reactStrictMode: true,
-    images: {
-      domains: ['tssearch.ceymox.net'],
-    },
-  }
-  
-  module.exports = withPWA({
+const nextConfig = {
+  reactStrictMode: true,
+  images: {
+    domains: ['tssearch.ceymox.net'],
+  },
+}
 
-    pwa: {
-      dest: "public",
-      register: true,
-      skipWaiting: true,
-    },
-    ...nextConfig,
-  });
-  
-
-  module.exports = {
-    async rewrites() {
-      return rewritesConfig;
-    },
-  };
+module.exports = {
+  ...nextConfig,
+  async rewrites() {
+    return rewritesConfig;
+  },
+};
